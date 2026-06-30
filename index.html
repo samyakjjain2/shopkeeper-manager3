@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloth Showroom Manager | Dashboard</title>
+    <meta name="description"
+        content="A premium modern dashboard to manage showroom clothes inventory, sell logs, and daily profit statistics.">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- JsBarcode CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- HTML5-QRCode CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- QRious QR Code Generator CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<style>
+    #auth-lang-select option {
+        background-color: #1e293b;
+        /* Dark background */
+        color: #f8fafc;
+        /* Light text */
+        padding: 10px;
+    }
+
+    #auth-lang-select option:hover {
+        background-color: #334155;
+    }
+
+    #auth-lang-select option:checked,
+    #auth-lang-select option:selected {
+        background-color: #3b82f6;
+        color: white;
+    }
+</style>
+
+<body>
+
+    <!-- ============================================================ -->
+    <!--  AUTH WRAPPER (Sign In / Sign Up / OTP panels)               -->
+    <!-- ============================================================ -->
+    <div id="auth-wrapper" style="
+        display: flex; align-items: center; justify-content: center;
+        min-height: 100vh; width: 100%; flex-shrink: 0; position: relative; background: #050915;
+        background-image: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 60%),
+                          radial-gradient(ellipse at 80% 50%, rgba(236,72,153,0.1) 0%, transparent 60%);
+        font-family: 'Outfit', sans-serif; padding: 24px;
+    ">
+
+        <!-- Floating Language Selector -->
+        <div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+            <select id="auth-lang-select" style="
+        background: rgba(255,255,255,0.06);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        color: #f1f5f9;
+        padding: 10px 14px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        outline: none;
+    ">
+            </select>
+        </div>
+
+        <!-- Floating animated orbs -->
+        <div
+            style="position:fixed;top:10%;left:5%;width:300px;height:300px;background:rgba(99,102,241,0.08);border-radius:50%;filter:blur(80px);pointer-events:none;">
+        </div>
+        <div
+            style="position:fixed;bottom:10%;right:5%;width:250px;height:250px;background:rgba(236,72,153,0.06);border-radius:50%;filter:blur(80px);pointer-events:none;">
+        </div>
+
+        <!-- ── SIGN IN PANEL ── -->
+        <div id="auth-signin-panel" style="
+            display: flex; flex-direction: column;
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+            padding: 40px; width: 100%; max-width: 440px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+            animation: authSlideIn 0.5s ease;
+        ">
+            <div style="text-align:center; margin-bottom:32px;">
+                <div
+                    style="width:56px;height:56px;background:linear-gradient(135deg,#6366f1,#ec4899);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i data-lucide="sparkles" style="width:28px;height:28px;color:white;"></i>
+                </div>
+                <h2 data-lang="welcomeBack" style="color:#f1f5f9;font-size:26px;font-weight:700;margin:0 0 6px;">Welcome
+                </h2>
+                <p data-lang="loginSubtitle" style="color:#64748b;font-size:14px;margin:0;">Apne showroom mein login
+                    karo</p>
+            </div>
+
+            <!-- Method Tabs -->
+            <div
+                style="display:flex;background:rgba(255,255,255,0.05);border-radius:12px;padding:4px;margin-bottom:24px;">
+                <button class="auth-method-tab active" data-method="email" data-lang="emailPassword"
+                    style="flex:1;padding:10px;border:none;border-radius:10px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;transition:all 0.2s;">
+                    📧 Email / Password
+                </button>
+                <button class="auth-method-tab" data-method="phone" data-lang="phoneOTP"
+                    style="flex:1;padding:10px;border:none;border-radius:10px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:600;background:transparent;color:#64748b;transition:all 0.2s;">
+                    📱 Phone Number
+                </button>
+            </div>
+
+            <!-- Email Login Panel -->
+            <div class="auth-method-panel" data-method="email" style="display:block;">
+                <form id="signin-email-form">
+                    <div style="margin-bottom:16px;">
+                        <label data-lang="emailId"
+                            style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Email
+                            ID</label>
+                        <input id="si-email" type="email" placeholder="aapki@email.com" required style="
+                            width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                            border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                            color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                            outline:none;box-sizing:border-box;transition:border-color 0.2s;
+                        " onfocus="this.style.borderColor='#6366f1'"
+                            onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                    </div>
+                    <div style="margin-bottom:20px;">
+                        <label data-lang="password"
+                            style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Password</label>
+                        <input id="si-password" type="password" data-lang-placeholder="password" placeholder="••••••••"
+                            required style="
+                            width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                            border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                            color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                            outline:none;box-sizing:border-box;transition:border-color 0.2s;
+                        " onfocus="this.style.borderColor='#6366f1'"
+                            onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                    </div>
+                    <button id="si-submit-btn" type="submit" data-lang="loginBtn" style="
+                        width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                        border:none;border-radius:12px;color:white;font-family:Outfit,sans-serif;
+                        font-size:15px;font-weight:700;cursor:pointer;
+                        box-shadow:0 4px 20px rgba(99,102,241,0.4);transition:transform 0.1s;
+                    " onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                        Login karo
+                    </button>
+                </form>
+                <div style="text-align:right;margin-top:10px;">
+                    <a id="go-to-forgot" href="#" data-lang="forgotPassword"
+                        style="color:#64748b;font-size:12px;text-decoration:none;"
+                        onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='#64748b'">
+                        🔑 Forgot Password?
+                    </a>
+                </div>
+            </div>
+
+            <!-- Phone OTP Login Panel -->
+            <div class="auth-method-panel" data-method="phone" style="display:none;">
+                <div style="margin-bottom:16px;">
+                    <label data-lang="phoneNumber"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Phone
+                        Number</label>
+                    <input id="si-phone" type="tel" data-lang-placeholder="enterPhoneNumber"
+                        placeholder="9876543210 (10 digits)" style="
+                        width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                        border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                        outline:none;box-sizing:border-box;transition:border-color 0.2s;
+                    " onfocus="this.style.borderColor='#6366f1'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                </div>
+                <button id="si-send-otp-btn" type="button" data-lang="sendOTP" style="
+                    width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#ec4899);
+                    border:none;border-radius:12px;color:white;font-family:Outfit,sans-serif;
+                    font-size:15px;font-weight:700;cursor:pointer;
+                    box-shadow:0 4px 20px rgba(99,102,241,0.4);transition:transform 0.1s;
+                " onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                    OTP Bhejo 📱
+                </button>
+            </div>
+
+            <!-- Error -->
+            <div id="signin-error"
+                style="display:none;margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#f87171;font-size:13px;">
+            </div>
+
+            <p style="text-align:center;margin-top:24px;color:#64748b;font-size:13px;">
+                <span data-lang="noAccount">Naya account chahiye?</span>
+                <a id="go-to-signup" href="#" data-lang="signUpLink"
+                    style="color:#818cf8;font-weight:600;text-decoration:none;">Sign Up karo</a>
+            </p>
+        </div>
+
+        <!-- ── SIGN UP PANEL ── -->
+        <div id="auth-signup-panel" style="
+            display: none; flex-direction: column;
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+            padding: 40px; width: 100%; max-width: 440px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+            animation: authSlideIn 0.5s ease;
+        ">
+            <div style="text-align:center; margin-bottom:28px;">
+                <div
+                    style="width:56px;height:56px;background:linear-gradient(135deg,#10b981,#06b6d4);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i data-lucide="user-plus" style="width:28px;height:28px;color:white;"></i>
+                </div>
+                <h2 data-lang="createAccount" style="color:#f1f5f9;font-size:26px;font-weight:700;margin:0 0 6px;">Naya
+                    Account Banao</h2>
+                <p data-lang="signupSubtitle" style="color:#64748b;font-size:14px;margin:0;">Apna showroom register karo
+                </p>
+            </div>
+
+            <form id="signup-form">
+                <!-- Name -->
+                <div style="margin-bottom:16px;">
+                    <label data-lang="yourName"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Aapka
+                        Naam</label>
+                    <input id="su-name" type="text" data-lang-placeholder="yourName" placeholder="e.g., Samyak Jain"
+                        required style="
+                        width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                        border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                        outline:none;box-sizing:border-box;
+                    ">
+                </div>
+
+                <!-- Method select -->
+                <div style="margin-bottom:16px;">
+                    <label data-lang="howRegister"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:10px;">Kaise
+                        register karein?</label>
+                    <div style="display:flex;gap:12px;">
+                        <label
+                            style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#94a3b8;font-size:13px;">
+                            <input type="radio" name="su-method" value="email" checked style="accent-color:#6366f1;">
+                            <span data-lang="emailPwd">Email + Password</span>
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#94a3b8;font-size:13px;">
+                            <input type="radio" name="su-method" value="phone" style="accent-color:#6366f1;"> <span
+                                data-lang="phoneotp">Phone OTP</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Email fields -->
+                <div id="su-email-fields" style="display:block;">
+                    <div style="margin-bottom:16px;">
+                        <label data-lang="emailId"
+                            style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Email
+                            ID</label>
+                        <input id="su-email" type="email" placeholder="aapki@email.com" style="
+                            width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                            border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                            color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                            outline:none;box-sizing:border-box;
+                        ">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label data-lang="password"
+                            style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Password
+                            (min 6 char)</label>
+                        <input id="su-password" type="password" data-lang-placeholder="password" placeholder="••••••••"
+                            style="
+                            width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                            border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                            color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                            outline:none;box-sizing:border-box;
+                        ">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label data-lang="confirmPassword"
+                            style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Confirm
+                            Password</label>
+                        <input id="su-confirm-password" type="password" data-lang-placeholder="confirmPassword"
+                            placeholder="••••••••" style="
+                            width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                            border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                            color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                            outline:none;box-sizing:border-box;
+                        ">
+                    </div>
+                </div>
+
+                <!-- Phone fields -->
+                <div id="su-phone-fields" style="display:none;">
+                    <div style="margin-bottom:16px;">
+                        <label data-lang="phoneNumber"
+                            style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Phone
+                            Number</label>
+                        <input id="su-phone" type="tel" data-lang-placeholder="enterPhoneNumber"
+                            placeholder="9876543210" style="
+                            width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                            border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                            color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                            outline:none;box-sizing:border-box;
+                        ">
+                    </div>
+                </div>
+
+                <button id="su-submit-btn" type="submit" data-lang="createAccountBtn" style="
+                    width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#06b6d4);
+                    border:none;border-radius:12px;color:white;font-family:Outfit,sans-serif;
+                    font-size:15px;font-weight:700;cursor:pointer;
+                    box-shadow:0 4px 20px rgba(16,185,129,0.3);transition:transform 0.1s;
+                " onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                    Account Banao ✨
+                </button>
+            </form>
+
+            <!-- Error -->
+            <div id="signup-error"
+                style="display:none;margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#f87171;font-size:13px;">
+            </div>
+
+            <p style="text-align:center;margin-top:24px;color:#64748b;font-size:13px;">
+                <span data-lang="alreadyAccount">Pehle se account hai?</span>
+                <a id="go-to-signin" href="#" data-lang="loginLink"
+                    style="color:#818cf8;font-weight:600;text-decoration:none;">Login karo</a>
+            </p>
+        </div>
+
+        <!-- ── OTP PANEL ── -->
+        <div id="auth-otp-panel" style="
+            display: none; flex-direction: column;
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+            padding: 40px; width: 100%; max-width: 420px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+            animation: authSlideIn 0.5s ease;
+        ">
+            <div style="text-align:center; margin-bottom:32px;">
+                <div style="font-size:56px;margin-bottom:16px;">📱</div>
+                <h2 data-lang="otpEnter" style="color:#f1f5f9;font-size:24px;font-weight:700;margin:0 0 8px;">OTP Enter
+                    Karo</h2>
+                <p data-lang="otpSent" style="color:#64748b;font-size:13px;margin:0;">6-digit OTP aapke number par bheja
+                    gaya hai</p>
+                <p id="otp-demo-note" data-lang="demoNote"
+                    style="color:#fbbf24;font-size:12px;margin-top:6px;font-weight:600;">📌 DEMO MODE: OTP screen par
+                    banner mein dikhega</p>
+            </div>
+
+            <!-- 6 OTP Boxes -->
+            <div style="display:flex;gap:10px;justify-content:center;margin-bottom:24px;">
+                <input class="otp-box" type="text" maxlength="1" inputmode="numeric" style="
+                    width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+                    background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);
+                    border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;
+                    transition:border-color 0.2s;
+                " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                <input class="otp-box" type="text" maxlength="1" inputmode="numeric" style="
+                    width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+                    background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);
+                    border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;
+                    transition:border-color 0.2s;
+                " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                <input class="otp-box" type="text" maxlength="1" inputmode="numeric" style="
+                    width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+                    background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);
+                    border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;
+                    transition:border-color 0.2s;
+                " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                <input class="otp-box" type="text" maxlength="1" inputmode="numeric" style="
+                    width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+                    background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);
+                    border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;
+                    transition:border-color 0.2s;
+                " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                <input class="otp-box" type="text" maxlength="1" inputmode="numeric" style="
+                    width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+                    background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);
+                    border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;
+                    transition:border-color 0.2s;
+                " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                <input class="otp-box" type="text" maxlength="1" inputmode="numeric" style="
+                    width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+                    background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);
+                    border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;
+                    transition:border-color 0.2s;
+                " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+            </div>
+
+            <button id="otp-verify-btn" type="button" data-lang="verifyOTP" style="
+                width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                border:none;border-radius:12px;color:white;font-family:Outfit,sans-serif;
+                font-size:15px;font-weight:700;cursor:pointer;
+                box-shadow:0 4px 20px rgba(99,102,241,0.4);margin-bottom:16px;
+            ">Verify OTP ✓</button>
+
+            <div style="text-align:center;">
+                <span id="otp-timer-text" style="color:#64748b;font-size:13px;"></span>
+                <button id="otp-resend-btn" type="button" data-lang="resendOTP" disabled style="
+                    background:none;border:none;color:#818cf8;font-size:13px;
+                    font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;
+                    padding:4px 8px;text-decoration:underline;
+                ">Resend OTP</button>
+            </div>
+
+            <div id="otp-error"
+                style="display:none;margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#f87171;font-size:13px;">
+            </div>
+
+            <p style="text-align:center;margin-top:20px;color:#64748b;font-size:12px;">
+                <a id="go-to-signin-2" href="#" data-lang="goBack"
+                    style="color:#818cf8;font-weight:600;text-decoration:none;">← Wapas jaao</a>
+            </p>
+
+            <!-- Invisible reCAPTCHA -->
+            <div id="recaptcha-container"></div>
+        </div>
+
+        <!-- ── FORGOT PASSWORD PANEL ── -->
+        <div id="auth-forgot-panel" style="
+            display: none; flex-direction: column;
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+            padding: 40px; width: 100%; max-width: 440px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+            animation: authSlideIn 0.5s ease;
+        ">
+            <div style="text-align:center; margin-bottom:28px;">
+                <div style="font-size:52px;margin-bottom:12px;">🔑</div>
+                <h2 data-lang="forgotTitle" style="color:#f1f5f9;font-size:24px;font-weight:700;margin:0 0 6px;">Reset
+                    Password</h2>
+                <p data-lang="forgotSubtitle" style="color:#64748b;font-size:13px;margin:0;">OTP se apna password reset
+                    karo</p>
+            </div>
+
+            <!-- Step 1: Enter contact -->
+            <div id="forgot-step-1">
+                <div style="margin-bottom:20px;">
+                    <label data-lang="resetContact"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">📱 Phone
+                        Number ya ✉️ Email</label>
+                    <input id="forgot-contact" type="text" data-lang-placeholder="resetContact"
+                        placeholder="9876543210 ya aapki@email.com" style="
+                        width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                        border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                        outline:none;box-sizing:border-box;transition:border-color 0.2s;
+                    " onfocus="this.style.borderColor='#f59e0b'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                </div>
+                <button id="forgot-send-otp-btn" type="button" data-lang="sendResetOTP" style="
+                    width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);
+                    border:none;border-radius:12px;color:white;font-family:Outfit,sans-serif;
+                    font-size:15px;font-weight:700;cursor:pointer;
+                    box-shadow:0 4px 20px rgba(245,158,11,0.35);
+                ">OTP Bhejo 🔒</button>
+            </div>
+
+            <!-- Step 2: OTP + New Password -->
+            <div id="forgot-step-2" style="display:none;">
+                <p style="color:#94a3b8;font-size:13px;margin:0 0 16px;">OTP aapke registered number/email par bheja
+                    gaya hai:</p>
+
+                <!-- OTP boxes (reuses .otp-box class but separate IDs) -->
+                <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px;">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                        style="width:48px;height:52px;text-align:center;font-size:20px;font-weight:700;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                        style="width:48px;height:52px;text-align:center;font-size:20px;font-weight:700;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                        style="width:48px;height:52px;text-align:center;font-size:20px;font-weight:700;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                        style="width:48px;height:52px;text-align:center;font-size:20px;font-weight:700;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                        style="width:48px;height:52px;text-align:center;font-size:20px;font-weight:700;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                        style="width:48px;height:52px;text-align:center;font-size:20px;font-weight:700;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:12px;color:#f1f5f9;font-family:Outfit,sans-serif;outline:none;">
+                </div>
+                <div style="margin-bottom:14px;">
+                    <label data-lang="newPassword"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">🔐 Naya
+                        Password</label>
+                    <input id="forgot-new-password" type="password" data-lang-placeholder="newPassword"
+                        placeholder="Min 6 characters" style="
+                        width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                        border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                        outline:none;box-sizing:border-box;
+                    ">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label data-lang="confirmNewPassword"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">🔐
+                        Password Confirm Karo</label>
+                    <input id="forgot-confirm-password" type="password" data-lang-placeholder="confirmNewPassword"
+                        placeholder="Same password dobara" style="
+                        width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);
+                        border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:14px;
+                        outline:none;box-sizing:border-box;
+                    ">
+                </div>
+                <button id="forgot-reset-btn" type="button" data-lang="resetBtn" style="
+                    width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#06b6d4);
+                    border:none;border-radius:12px;color:white;font-family:Outfit,sans-serif;
+                    font-size:15px;font-weight:700;cursor:pointer;
+                    box-shadow:0 4px 20px rgba(16,185,129,0.3);
+                ">✅ Password Reset Karo</button>
+            </div>
+
+            <div id="forgot-error"
+                style="display:none;margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#f87171;font-size:13px;">
+            </div>
+
+            <p style="text-align:center;margin-top:20px;color:#64748b;font-size:12px;">
+                <a id="go-to-signin-from-forgot" href="#" data-lang="backToLogin"
+                    style="color:#818cf8;font-weight:600;text-decoration:none;">← Wapas Login Par Jaao</a>
+            </p>
+        </div>
+    </div>
+    <!-- END AUTH WRAPPER -->
+
+    <!-- ============================================================ -->
+    <!--  SHOP SETUP SCREEN (pehli baar login ke baad)               -->
+    <!-- ============================================================ -->
+    <div id="shop-setup-screen" style="
+        display: none; align-items: center; justify-content: center;
+        min-height: 100vh; width: 100%; flex-shrink: 0; background: #050915;
+        background-image: radial-gradient(ellipse at 30% 40%, rgba(16,185,129,0.12) 0%, transparent 60%),
+                          radial-gradient(ellipse at 70% 60%, rgba(99,102,241,0.1) 0%, transparent 60%);
+        font-family: 'Outfit', sans-serif; padding: 24px;
+    ">
+        <div style="
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px;
+            padding: 48px 40px; width: 100%; max-width: 480px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.4); text-align: center;
+            animation: authSlideIn 0.6s ease;
+        ">
+            <div style="font-size:64px;margin-bottom:16px;">🏪</div>
+            <h2 data-lang="aboutShop" style="color:#f1f5f9;font-size:28px;font-weight:700;margin:0 0 8px;">Aapki Shop Ke
+                Baare Mein</h2>
+            <p data-lang="shopSetupSubtitle" style="color:#64748b;font-size:15px;margin:0 0 36px;">Yeh jaankari sirf ek
+                baar chahiye. Iske baad aap apna showroom manage kar sakte hain!</p>
+
+            <form id="shop-setup-form" style="text-align:left;">
+                <div style="margin-bottom:20px;">
+                    <label data-lang="shopNameLabel"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:10px;">🏷️ Aapki
+                        Shop Ka Naam Kya Hai?</label>
+                    <input id="setup-shop-name" type="text" data-lang-placeholder="shopNamePlaceholder"
+                        placeholder="e.g., Sanyam Garments, Ravi Cloth House..." required style="
+                        width:100%;padding:16px 18px;background:rgba(255,255,255,0.07);
+                        border:2px solid rgba(255,255,255,0.12);border-radius:14px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:15px;
+                        outline:none;box-sizing:border-box;transition:border-color 0.2s;
+                    " onfocus="this.style.borderColor='#10b981'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                </div>
+                <div style="margin-bottom:32px;">
+                    <label data-lang="ownerNameLabel"
+                        style="display:block;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:10px;">👤 Owner
+                        Ka Naam Kya Hai?</label>
+                    <input id="setup-owner-name" type="text" data-lang-placeholder="ownerNamePlaceholder"
+                        placeholder="e.g., Samyak Jain, Ravi Kumar..." required style="
+                        width:100%;padding:16px 18px;background:rgba(255,255,255,0.07);
+                        border:2px solid rgba(255,255,255,0.12);border-radius:14px;
+                        color:#f1f5f9;font-family:Outfit,sans-serif;font-size:15px;
+                        outline:none;box-sizing:border-box;transition:border-color 0.2s;
+                    " onfocus="this.style.borderColor='#10b981'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                </div>
+                <button type="submit" data-lang="startBtn" style="
+                    width:100%;padding:18px;border:none;border-radius:14px;
+                    background:linear-gradient(135deg,#10b981,#6366f1);
+                    color:white;font-family:Outfit,sans-serif;font-size:16px;font-weight:700;
+                    cursor:pointer;box-shadow:0 6px 24px rgba(16,185,129,0.35);
+                    transition:transform 0.15s;
+                " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                    🚀 Showroom Shuru Karo!
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- END SHOP SETUP -->
+
+    <!-- ============================================================ -->
+    <!--  MAIN APP WRAPPER (hidden until logged in)                   -->
+    <!-- ============================================================ -->
+    <div id="main-app-wrapper" style="display:none;" aria-hidden="true">
+
+        <!-- Mobile Top Bar (visible only on small screens) -->
+        <div class="mobile-header-bar" id="mobile-header-bar">
+            <button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">
+                <i data-lucide="menu" style="width:20px;height:20px;"></i>
+            </button>
+            <span class="mobile-shop-name" id="mobile-shop-name">Showroom Manager</span>
+            <button onclick="AuthManager.logout()" title="Logout" style="
+                background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+                color: #f87171; border-radius: 8px; padding: 6px 8px; cursor: pointer;
+                display: flex; align-items: center; flex-shrink: 0;
+            ">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar backdrop for mobile -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i data-lucide="sparkles"></i>
+                </div>
+                <span class="logo-text">SANYAM GARMENTS</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a class="menu-item active" data-tab="dashboard">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span data-lang="dashboard">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="menu-item" data-tab="inventory">
+                        <i data-lucide="shirt"></i>
+                        <span data-lang="inventory">Inventory</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="menu-item" data-tab="sales">
+                        <i data-lucide="receipt"></i>
+                        <span data-lang="customerBills">Customer Bills</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="menu-item" data-tab="alerts">
+                        <i data-lucide="alert-triangle"></i>
+                        <span data-lang="restockAlerts">Restock Alerts</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="menu-item" data-tab="suppliers">
+                        <i data-lucide="contact-2"></i>
+                        <span data-lang="suppliers">Suppliers & Payables</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="menu-item" data-tab="settings">
+                        <i data-lucide="settings"></i>
+                        <span data-lang="settings">Settings</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer" style="flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;gap:12px;width:100%;">
+                    <div class="avatar" id="sidebar-avatar">SG</div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebar-user-name">Shop Owner</span>
+                        <span class="user-role" id="sidebar-user-role">Owner</span>
+                    </div>
+                    <button onclick="AuthManager.logout()" title="Logout" style="
+                    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+                    color: #f87171; border-radius: 8px; padding: 6px 8px; cursor: pointer;
+                    margin-left: auto; flex-shrink: 0; display: flex; align-items: center;
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+                        onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                        <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                    </button>
+                </div>
+                <!-- Cloud Sync Status Badge -->
+                <div id="supabase-sync-badge" style="width:100%;text-align:center;padding:4px 0;
+                     border-top:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:11px;color:#64748b;font-weight:600;">☁️ Connecting...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-title">
+                    <h1 id="header-page-title" data-lang="dashboardTitle">Dashboard Overview</h1>
+                    <p id="header-page-subtitle">Welcome back! Here's how your showroom is performing today.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="quick-sell-trigger">
+                        <i data-lucide="receipt"></i>
+                        <span data-lang="createBill">Create Bill</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- ================= DASHBOARD TAB ================= -->
+            <section id="dashboard" class="tab-content active">
+                <!-- Stats Row -->
+                <div class="stats-grid">
+                    <!-- Stat Card 1 -->
+                    <div class="card stat-card earnings">
+                        <div class="stat-header">
+                            <span class="stat-title" data-lang="todayEarnings">Today's Earnings</span>
+                            <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
+                        </div>
+                        <div class="stat-value" id="stat-earnings">₹0.00</div>
+                        <div class="stat-desc">
+                            <span data-lang="netProfitToday">Net Profit today:</span> &nbsp;<span id="stat-net-profit"
+                                class="positive">₹0.00</span>
+                        </div>
+                    </div>
+                    <!-- Stat Card 2 -->
+                    <div class="card stat-card sales">
+                        <div class="stat-header">
+                            <span class="stat-title" data-lang="clothesSoldToday">Clothes Sold Today</span>
+                            <div class="stat-icon"><i data-lucide="shopping-bag"></i></div>
+                        </div>
+                        <div class="stat-value" id="stat-sales-qty">0</div>
+                        <div class="stat-desc" id="stat-sales-comparison" data-lang="allApparelCats">
+                            Across all apparel categories
+                        </div>
+                    </div>
+                    <!-- Stat Card 3 -->
+                    <div class="card stat-card inventory">
+                        <div class="stat-header">
+                            <span class="stat-title" data-lang="totalStocked">Total Clothes Stocked</span>
+                            <div class="stat-icon"><i data-lucide="layers"></i></div>
+                        </div>
+                        <div class="stat-value" id="stat-stock-qty">0</div>
+                        <div class="stat-desc">
+                            <span data-lang="worth">Worth</span> &nbsp;<span
+                                id="stat-inventory-val">₹0.00</span>&nbsp;<span data-lang="inAssetCost">in asset
+                                cost</span>
+                        </div>
+                    </div>
+                    <!-- Stat Card 4 -->
+                    <div class="card stat-card alerts">
+                        <div class="stat-header">
+                            <span class="stat-title" data-lang="lowStockAlert">Low Stock Alert</span>
+                            <div class="stat-icon"><i data-lucide="alert-circle"></i></div>
+                        </div>
+                        <div class="stat-value" id="stat-low-stock-count">0</div>
+                        <div class="stat-desc" data-lang="needRestock">
+                            Items need restocking immediately
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="card chart-card">
+                        <div class="chart-header">
+                            <span class="chart-title" data-lang="salesProfitTrends">Sales & Profit Trends (Last 7
+                                Days)</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="earningsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">
+                            <span class="chart-title" data-lang="stockDistribution">Stock Distribution</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="stockDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Recent Activity & Quick Actions -->
+                <div class="home-row">
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px; font-size: 16px;" data-lang="recentTransactions">Recent
+                            Transactions</h3>
+                        <div class="activity-list" id="recent-activity-list">
+                            <!-- Populated by JS -->
+                            <div style="text-align: center; color: var(--text-muted); padding: 20px;"
+                                data-lang="noSalesLogged">No sales logged yet.
+                                Click "New Sale" to start!</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px; font-size: 16px;" data-lang="quickOperations">Quick Operations
+                        </h3>
+                        <div class="quick-action-buttons">
+                            <div class="quick-action-card sale" id="action-btn-sale">
+                                <i data-lucide="receipt"></i>
+                                <span class="quick-action-title">Create Bill</span>
+                                <span class="quick-action-desc" data-lang="createBillDesc">Instantly make customer
+                                    invoice and update stock</span>
+                            </div>
+                            <div class="quick-action-card inventory" id="action-btn-inventory">
+                                <i data-lucide="plus-circle"></i>
+                                <span class="quick-action-title" data-lang="addClothes">Add Clothes</span>
+                                <span class="quick-action-desc" data-lang="addClothesDesc">Add new patterns or garments
+                                    to list</span>
+                            </div>
+                            <div class="quick-action-card alerts" id="action-btn-alerts">
+                                <i data-lucide="bell"></i>
+                                <span class="quick-action-title" data-lang="checkAlerts">Check Alerts</span>
+                                <span class="quick-action-desc" data-lang="checkAlertsDesc">View items running below
+                                    stock limit</span>
+                            </div>
+                            <div class="quick-action-card report" id="action-btn-reset">
+                                <i data-lucide="rotate-ccw"></i>
+                                <span class="quick-action-title" data-lang="resetDatabase">Reset Database</span>
+                                <span class="quick-action-desc" data-lang="resetDatabaseDesc">Wipe all logs & reload
+                                    demo dataset</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= INVENTORY TAB ================= -->
+            <section id="inventory" class="tab-content">
+                <div class="card">
+                    <div class="table-controls">
+                        <div class="search-bar">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="inventory-search" placeholder="Search by name, size, category...">
+                        </div>
+                        <div class="filters">
+                            <select class="select-filter" id="filter-category">
+                                <option value="all">All Categories</option>
+                                <option value="Shirts">Shirts</option>
+                                <option value="T-shirts">T-shirts</option>
+                                <option value="Jeans">Jeans</option>
+                                <option value="Jackets">Jackets</option>
+                                <option value="Dresses">Dresses</option>
+                                <option value="Other">Other Accessories</option>
+                            </select>
+                            <select class="select-filter" id="filter-stock">
+                                <option value="all">All Stock Status</option>
+                                <option value="instock">In Stock (Normal)</option>
+                                <option value="low">Low Stock</option>
+                                <option value="out">Out of Stock</option>
+                            </select>
+                            <button class="btn btn-accent" id="add-item-trigger">
+                                <i data-lucide="plus"></i>
+                                <span>Add New Clothes</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="custom-table" id="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Size</th>
+                                    <th>Stock Quantity</th>
+                                    <th>Buying Cost</th>
+                                    <th>Selling Price</th>
+                                    <th>Net Margin</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-tbody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SALES LOG TAB ================= -->
+            <section id="sales" class="tab-content">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 16px; font-weight: 600;">Showroom Transaction Register</h3>
+                        <div
+                            style="font-size: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 8px 16px; border-radius: var(--border-radius-sm);">
+                            Lifetime Store Profit: <strong id="lifetime-profit"
+                                style="color: var(--accent-emerald);">₹0.00</strong>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Garment Name</th>
+                                    <th>Size</th>
+                                    <th>Qty Sold</th>
+                                    <th>Revenue (Sales)</th>
+                                    <th>Profit Earned</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-tbody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= RESTOCK ALERTS TAB ================= -->
+            <section id="alerts" class="tab-content">
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="font-size: 18px; margin-bottom: 8px; font-weight: 600;">Garments Needing Reorder</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Below list highlights
+                        clothes whose stocks are less than or equal to their min stock threshold alert level.</p>
+
+                    <div class="table-container">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Category</th>
+                                    <th>Size</th>
+                                    <th>Current Quantity</th>
+                                    <th>Alert Threshold</th>
+                                    <th>Recommended Restock Qty</th>
+                                    <th style="text-align: right;">Add Stock Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alerts-tbody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SUPPLIERS & PAYABLES TAB ================= -->
+            <section id="suppliers" class="tab-content">
+                <!-- Suppliers Stats -->
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="card stat-card alerts">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Outstanding Payments</span>
+                            <div class="stat-icon"><i data-lucide="wallet"></i></div>
+                        </div>
+                        <div class="stat-value" id="stat-total-payables">₹0.00</div>
+                        <div class="stat-desc">
+                            Money owed to cloth suppliers/brands
+                        </div>
+                    </div>
+                    <div class="card stat-card sales">
+                        <div class="stat-header">
+                            <span class="stat-title">Pending Invoices</span>
+                            <div class="stat-icon"><i data-lucide="receipt"></i></div>
+                        </div>
+                        <div class="stat-value" id="stat-pending-invoices">0</div>
+                        <div class="stat-desc">
+                            Distributors awaiting settlement
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-controls">
+                        <div class="search-bar">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="supplier-search" placeholder="Search supplier name or phone...">
+                        </div>
+                        <div class="filters">
+                            <select class="select-filter" id="filter-supplier-status">
+                                <option value="all">All Invoices</option>
+                                <option value="pending">Pending Payments</option>
+                                <option value="paid">Paid Settlements</option>
+                            </select>
+                            <button class="btn btn-accent" id="add-supplier-trigger">
+                                <i data-lucide="user-plus"></i>
+                                <span>Add Supplier Record</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="custom-table" id="supplier-table">
+                            <thead>
+                                <tr>
+                                    <th>Supplier / Distributor</th>
+                                    <th>Contact Information</th>
+                                    <th>Amount Owed (₹)</th>
+                                    <th>Payment Due Date</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="supplier-tbody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SETTINGS TAB ================= -->
+            <section id="settings" class="tab-content">
+
+                <!-- ── LANGUAGE CARD ── -->
+                <div class="card" style="margin-bottom:24px;">
+                    <h3 data-lang="languageTitle" style="margin-bottom:6px;font-size:18px;font-weight:700;">🌐 Language
+                        / भाषा</h3>
+                    <p data-lang="languageDesc" style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">
+                        Apni pasandida bhasha chuniye. App turant update ho jaayega.</p>
+                    <div id="language-grid"
+                        style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- ── SHOP PROFILE CARD ── -->
+                <div class="card" style="margin-bottom:24px;">
+                    <h3 data-lang="shopProfileTitle"
+                        style="margin-bottom:6px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        🏪 Shop Profile
+                    </h3>
+                    <p data-lang="shopProfileDesc"
+                        style="color:var(--text-secondary);font-size:14px;margin-bottom:24px;">Apni dukan ka naam, malik
+                        ka naam, address aur phone edit karo. Yeh sab customer bill pe dikhega.</p>
+
+                    <form id="shop-profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-lang="shopNameField" class="form-label">Shop Name</label>
+                                <input type="text" id="profile-shop-name" class="form-input"
+                                    placeholder="e.g., Sanyam Garments">
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="ownerNameField" class="form-label">Owner Name</label>
+                                <input type="text" id="profile-owner-name" class="form-input"
+                                    placeholder="e.g., Samyak Jain">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="shopAddressField" class="form-label">Shop Address (for bill)</label>
+                            <textarea id="profile-shop-address" data-lang-placeholder="shopAddressPlaceholder"
+                                class="form-input" rows="2"
+                                placeholder="e.g., Near Govt. Hospital, Badagaon, Tikamgarh - 472010"
+                                style="resize:vertical;min-height:60px;"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-lang="shopPhoneField" class="form-label">Shop Phone (for bill)</label>
+                                <input type="text" id="profile-shop-phone"
+                                    data-lang-placeholder="shopPhoneFieldPlaceholder" class="form-input"
+                                    placeholder="e.g., +91 8319361505">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">💳 UPI ID (QR Code ke liye)</label>
+                                <input type="text" id="profile-upi-id" class="form-input"
+                                    placeholder="e.g., 8319361505@upi">
+                            </div>
+                        </div>
+                        <div style="margin-top:16px;display:flex;gap:12px;align-items:center;">
+                            <button type="submit" class="btn btn-accent" data-lang="saveProfile" style="">
+                                <i data-lucide="save"></i> Profile Save Karo
+                            </button>
+                            <span id="profile-save-msg" data-lang="profileSaved"
+                                style="display:none;color:#10b981;font-size:13px;font-weight:600;">✅ Shop profile
+                                saved!</span>
+                        </div>
+                    </form>
+                </div>
+
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; margin-bottom: 24px;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 8px; font-size: 18px; font-weight: 600;">Showroom Categories & Brands
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Manage custom
+                            apparel
+                            types or brand collections in your showroom. Adding a category updates all entry dropdowns.
+                        </p>
+
+                        <form id="category-form" style="display: flex; gap: 12px; margin-bottom: 24px;">
+                            <input type="text" id="new-category-name" class="form-input"
+                                placeholder="e.g., Levis Denim, Nike Activewear" required>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-lucide="plus"></i> Add
+                            </button>
+                        </form>
+
+                        <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">Active
+                            Collections
+                        </h4>
+                        <div id="category-list-container" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-bottom: 8px; font-size: 18px; font-weight: 600;">Backup & Diagnostics</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Manage your
+                            showroom
+                            browser database, clear storage settings, or export transactions summary.</p>
+
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: var(--border-radius-md); border: 1px solid var(--card-border);">
+                                <div>
+                                    <div style="font-weight:600; font-size:14px; color: #ef4444;">Start Fresh (Clear
+                                        Database)</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">Deletes all clothes,
+                                        transactions,
+                                        and supplier contacts to start typing your own.</div>
+                                </div>
+                                <button class="btn btn-danger"
+                                    style="padding: 8px 16px; background-color: var(--danger);"
+                                    onclick="app.clearAllData()">Clear All Data</button>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: var(--border-radius-md); border: 1px solid var(--card-border);">
+                                <div>
+                                    <div style="font-weight:600; font-size:14px;">Restore Demo Data</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">Loads the preloaded showroom
+                                        data
+                                        and charts for testing.</div>
+                                </div>
+                                <button class="btn btn-primary"
+                                    style="padding: 8px 16px; background-color: var(--accent-indigo);"
+                                    onclick="app.resetDatabase()">Load Demo</button>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: var(--border-radius-md); border: 1px solid var(--card-border);">
+                                <div>
+                                    <div style="font-weight:600; font-size:14px;">Export Sales History</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">Download a backup file of all
+                                        clothes transactions.</div>
+                                </div>
+                                <button class="btn btn-secondary" style="padding: 8px 16px;"
+                                    onclick="app.exportSalesCSV()">Export CSV</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cloud API Keys Configuration (Firebase) -->
+                <div class="card" style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 8px; font-size: 18px; font-weight: 600;">☁️ Cloud Sync & Auth API Configuration</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">
+                        Configure your Firebase OTP details to send real SMS OTPs for free. Your cloud database sync is automatically managed securely by the backend server.
+                    </p>
+ 
+                    <form id="cloud-api-settings-form">
+                        <h4 style="margin-top: 0px; margin-bottom: 12px; font-size: 14px; color: var(--accent-indigo);">Firebase Authentication (Phone OTP)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="settings-fb-api-key">Firebase API Key</label>
+                                <input type="text" id="settings-fb-api-key" class="form-input" placeholder="apiKey">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="settings-fb-auth-domain">Auth Domain</label>
+                                <input type="text" id="settings-fb-auth-domain" class="form-input" placeholder="authDomain">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="settings-fb-project-id">Project ID</label>
+                                <input type="text" id="settings-fb-project-id" class="form-input" placeholder="projectId">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="settings-fb-storage-bucket">Storage Bucket</label>
+                                <input type="text" id="settings-fb-storage-bucket" class="form-input" placeholder="storageBucket">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="settings-fb-sender-id">Messaging Sender ID</label>
+                                <input type="text" id="settings-fb-sender-id" class="form-input" placeholder="messagingSenderId">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="settings-fb-app-id">App ID</label>
+                                <input type="text" id="settings-fb-app-id" class="form-input" placeholder="appId">
+                            </div>
+                        </div>
+
+                        <div class="form-actions" style="margin-top: 16px; justify-content: flex-start; gap: 12px;">
+                            <button type="submit" class="btn btn-accent">
+                                <i data-lucide="save"></i> Save Cloud Configuration
+                            </button>
+                            <span id="cloud-settings-save-msg" style="display:none;color:#10b981;font-size:13px;font-weight:600;">✅ Cloud settings saved! Page reloading...</span>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- UPI QR Code Settings (now part of Shop Profile above) -->
+                <div class="card" style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 8px; font-size: 18px; font-weight: 600;">UPI Payments Configuration</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Configure the UPI ID
+                        to
+                        print QR codes automatically at the bottom of customer bills, enabling instant scan-to-pay
+                        checkout.
+                    </p>
+
+                    <form id="upi-settings-form"
+                        style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 250px;">
+                            <label class="form-label" for="settings-upi-id">Business UPI ID (VPA)</label>
+                            <input type="text" id="settings-upi-id" class="form-input"
+                                placeholder="e.g. 8319361505@upi or merchantname@okaxis" required>
+                        </div>
+                        <button type="submit" class="btn btn-accent" style="height: 46px;">
+                            <i data-lucide="save"></i> Save UPI Settings
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Manual Barcode Generator -->
+                <div class="card" style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 8px; font-size: 18px; font-weight: 600;">Manual Barcode Label Generator
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Generate a custom
+                        barcode
+                        tag from scratch by typing custom values below. Useful for labeling accessories or unlisted
+                        garments.</p>
+
+                    <form id="manual-barcode-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="manual-bar-name">Clothes Name</label>
+                                <input type="text" id="manual-bar-name" class="form-input"
+                                    placeholder="e.g., Designer Silk Stole" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="manual-bar-sku">Barcode SKU / Code</label>
+                                <input type="text" id="manual-bar-sku" class="form-input"
+                                    placeholder="e.g., SG-STOLE-001" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="manual-bar-size">Size</label>
+                                <input type="text" id="manual-bar-size" class="form-input" placeholder="e.g., Free Size"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="manual-bar-price">Selling Retail Price (₹)</label>
+                                <input type="number" id="manual-bar-price" class="form-input" placeholder="e.g., 699"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-actions" style="margin-top: 16px; justify-content: flex-start;">
+                            <button type="submit" class="btn btn-accent">
+                                <i data-lucide="barcode"></i> Generate & Preview Barcode
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+    </div><!-- END main-app-wrapper -->
+
+    <!-- ================= ADD / EDIT ITEM MODAL ================= -->
+    <div class="modal-overlay" id="item-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="item-modal-title">Add New Clothing Item</h3>
+                <button class="modal-close" id="close-item-modal">&times;</button>
+            </div>
+            <form id="item-form">
+                <input type="hidden" id="edit-item-id">
+                <div class="form-group">
+                    <label class="form-label" for="item-name">Garment Name</label>
+                    <input class="form-input" type="text" id="item-name" placeholder="e.g., Slim Fit Cotton Linen Shirt"
+                        required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="item-category">Category</label>
+                        <select class="form-input" id="item-category" required>
+                            <option value="Shirts">Shirts</option>
+                            <option value="T-shirts">T-shirts</option>
+                            <option value="Jeans">Jeans</option>
+                            <option value="Jackets">Jackets</option>
+                            <option value="Dresses">Dresses</option>
+                            <option value="Other">Other Accessories</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="item-size">Size</label>
+                        <select class="form-input" id="item-size" required>
+                            <option value="XS">XS</option>
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                            <option value="XXL">XXL</option>
+                            <option value="Free Size">Free Size</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="item-buy-price">Purchase Price (Buying Cost) (₹)</label>
+                        <input class="form-input" type="number" id="item-buy-price" min="0" placeholder="e.g., 400"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="item-sell-price">Selling Retail Price (₹)</label>
+                        <input class="form-input" type="number" id="item-sell-price" min="0" placeholder="e.g., 999"
+                            required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="item-qty">Opening Stock (Quantity)</label>
+                        <input class="form-input" type="number" id="item-qty" min="0" placeholder="e.g., 50" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="item-alert-limit">Min Stock Alert Level</label>
+                        <input class="form-input" type="number" id="item-alert-limit" min="0" placeholder="e.g., 10"
+                            required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-item-modal">✕ Close</button>
+                    <button type="submit" class="btn btn-primary" id="save-item-btn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= RECORD SALE MODAL ================= -->
+    <div class="modal-overlay" id="sale-modal-overlay">
+        <div class="modal" style="max-width: 680px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Customer Bill</h3>
+                <button class="modal-close" id="close-sale-modal">&times;</button>
+            </div>
+            <form id="sale-form">
+                <!-- Barcode Scanner input box -->
+                <div class="scanner-section"
+                    style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border); padding: 16px; border-radius: var(--border-radius-md);">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label class="form-label" for="sale-barcode-input" style="margin-bottom: 0;">
+                                <i data-lucide="barcode"
+                                    style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:6px;color:var(--accent-amber);"></i>
+                                Scan Barcode / Enter SKU
+                            </label>
+                            <button type="button" class="btn btn-secondary" id="camera-scan-toggle"
+                                style="padding: 6px 12px; font-size: 12px;">
+                                <i data-lucide="camera"
+                                    style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+                                Scan with Camera
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input class="form-input" type="text" id="sale-barcode-input"
+                                placeholder="Scan barcode with reader, or type code (e.g. P1-L-1999) and press Enter"
+                                style="flex: 1;">
+                            <button type="button" class="btn btn-primary" id="add-by-barcode-btn"
+                                style="padding: 10px 16px;">
+                                Add
+                            </button>
+                        </div>
+
+                        <!-- Camera Scanner element -->
+                        <div id="camera-scanner-container"
+                            style="display: none; margin-top: 12px; border: 1px solid var(--card-border); border-radius: var(--border-radius-md); overflow: hidden; position: relative;">
+                            <div id="camera-scanner-viewfinder" style="width: 100%; height: 250px; background: #000;">
+                            </div>
+                            <div class="scanner-laser-line"></div>
+                            <div
+                                style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 11px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 10px; border-radius: 20px;">
+                                Point at garment barcode tag</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Itemised List Table -->
+                <div class="form-group">
+                    <label class="form-label">Scanned Garments List</label>
+                    <div class="table-container" style="max-height: 220px; overflow-y: auto;">
+                        <table class="custom-table" style="font-size: 13px;" id="bill-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 10px;">Garment Name</th>
+                                    <th style="padding: 10px; text-align: center;">Size</th>
+                                    <th style="padding: 10px; text-align: right;">Price (₹)</th>
+                                    <th style="padding: 10px; text-align: center; width: 100px;">Qty</th>
+                                    <th style="padding: 10px; text-align: right;">Total (₹)</th>
+                                    <th style="padding: 10px; text-align: center; width: 40px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bill-items-tbody">
+                                <tr>
+                                    <td colspan="6"
+                                        style="text-align: center; padding: 24px; color: var(--text-muted);">
+                                        No items scanned yet. Use barcode scanner above.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Backup Manual Selector dropdown -->
+                <div style="margin-bottom: 20px;">
+                    <details>
+                        <summary
+                            style="font-size: 12px; color: var(--text-secondary); cursor: pointer; padding: 4px 0; outline: none; user-select: none;">
+                            <i data-lucide="chevron-right"
+                                style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:2px;"></i>
+                            Or select from inventory manually
+                        </summary>
+                        <div style="margin-top: 8px; display: flex; gap: 8px;">
+                            <select class="form-input" id="sale-item-select" style="flex: 1;">
+                                <option value="">-- Choose Item from Showroom Stock --</option>
+                                <!-- Populated by JS -->
+                            </select>
+                            <button type="button" class="btn btn-secondary" id="add-manual-select-btn"
+                                style="padding: 10px 16px;">
+                                Add to Bill
+                            </button>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="sale-discount">Discount (%)</label>
+                        <div style="position:relative;">
+                            <input class="form-input" type="number" id="sale-discount" min="0" max="100" step="0.5"
+                                value="0" style="padding-right: 36px;">
+                            <span
+                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--accent-amber);font-weight:700;font-size:16px;pointer-events:none;">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="text-align: right;">
+                        <label class="form-label">Total Checkout Price</label>
+                        <div style="font-size: 28px; font-weight: 700; color: var(--accent-emerald);"
+                            id="sale-total-cost">₹0.00</div>
+                        <span style="font-size: 12px; color: var(--text-muted);" id="sale-profit-est">Est. Profit:
+                            ₹0.00</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="sale-cust-name">Customer Name (Optional)</label>
+                        <input class="form-input" type="text" id="sale-cust-name" placeholder="e.g., Rahul Sharma">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="sale-cust-phone">Customer Phone (Optional)</label>
+                        <input class="form-input" type="text" id="sale-cust-phone" placeholder="e.g., 9876543210">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-sale-modal">✕ Close</button>
+                    <button type="submit" class="btn btn-accent" id="checkout-bill-btn"
+                        style="background: linear-gradient(135deg, var(--accent-emerald), var(--accent-indigo)); box-shadow: 0 4px 15px var(--accent-emerald-glow);">
+                        <i data-lucide="check-circle"
+                            style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+                        Check-out & Print Bill
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= ADD / EDIT SUPPLIER MODAL ================= -->
+    <div class="modal-overlay" id="supplier-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="supplier-modal-title">Add Supplier Payment Record</h3>
+                <button class="modal-close" id="close-supplier-modal">&times;</button>
+            </div>
+            <form id="supplier-form">
+                <input type="hidden" id="edit-supplier-id">
+                <div class="form-group">
+                    <label class="form-label" for="supplier-name">Supplier / Brand Name</label>
+                    <input class="form-input" type="text" id="supplier-name" placeholder="e.g., Zara Wholesale India"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="supplier-contact">Contact Info (Phone/Email)</label>
+                    <input class="form-input" type="text" id="supplier-contact"
+                        placeholder="e.g., +91 98765 43210 / info@zara.in" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="supplier-amount">Amount Owed (₹)</label>
+                        <input class="form-input" type="number" id="supplier-amount" min="0" placeholder="e.g., 25000"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="supplier-due-date">Payment Due Date</label>
+                        <input class="form-input" type="date" id="supplier-due-date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="supplier-status">Payment Status</label>
+                    <select class="form-input" id="supplier-status" required>
+                        <option value="pending">Pending Payment</option>
+                        <option value="paid">Settled / Paid</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-supplier-modal">✕ Close</button>
+                    <button type="submit" class="btn btn-primary" id="save-supplier-btn">Save Supplier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= INVOICE RECEIPT MODAL ================= -->
+    <div class="modal-overlay" id="invoice-modal-overlay">
+        <div class="modal" style="max-width: 420px; padding: 24px;">
+            <div class="modal-header" style="margin-bottom: 16px;">
+                <h3 class="modal-title">Receipt Invoice</h3>
+                <button class="modal-close" id="close-invoice-modal">&times;</button>
+            </div>
+
+            <!-- PRINTABLE AREA -->
+            <div id="invoice-print-area"
+                style="background: white; color: black; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 13px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img id="inv-shop-logo" src="sanyam_garments_logo.png" alt="Sanyam Garments Logo"
+                        style="width: 70px; height: 70px; display: block; margin: 0 auto 8px auto; border-radius: 50%;">
+                    <h2 id="inv-shop-name"
+                        style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; color: black;">
+                        SHOWROOM MANAGER</h2>
+                    <div id="inv-shop-address" style="font-size: 11px; font-weight: 600; margin-top: 4px; color: #222;">
+                        Shop Address Line 1, City, State - Pincode</div>
+                    <div id="inv-shop-phone" style="font-size: 11px; margin-top: 2px; color: #555;">Owner Mobile: +91 XXXXXXXXXX</div>
+                    <div style="border-bottom: 1px dashed black; margin: 12px 0;"></div>
+                </div>
+
+                <div style="margin-bottom: 12px; line-height: 1.4;">
+                    <div><strong>Invoice No:</strong> <span id="inv-id">TX-12345</span></div>
+                    <div><strong>Date & Time:</strong> <span id="inv-date">11-Jun-2026 11:20 AM</span></div>
+                    <div><strong>Customer Name:</strong> <span id="inv-cust-name">Cash Customer</span></div>
+                    <div><strong>Customer Phone:</strong> <span id="inv-cust-phone">N/A</span></div>
+                </div>
+
+                <div style="border-bottom: 1px dashed black; margin: 12px 0;"></div>
+
+                <table
+                    style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px dashed black;">
+                            <th style="padding-bottom: 6px;">Description</th>
+                            <th style="text-align: center; padding-bottom: 6px;">Size</th>
+                            <th style="text-align: center; padding-bottom: 6px;">Qty</th>
+                            <th style="text-align: right; padding-bottom: 6px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inv-items-body">
+                        <!-- Dynamic Receipt Item row -->
+                    </tbody>
+                </table>
+
+                <div style="border-bottom: 1px dashed black; margin: 12px 0;"></div>
+
+                <div style="line-height: 1.6; text-align: right;">
+                    <div>Subtotal: <span id="inv-subtotal">₹0.00</span></div>
+                    <div>Applied Discount: <span id="inv-discount">-₹0.00</span></div>
+                    <div>GST (Included 5%): <span id="inv-gst">₹0.00</span></div>
+                    <div style="font-size: 15px; font-weight: bold; margin-top: 4px;">Grand Total: <span
+                            id="inv-grandtotal">₹0.00</span></div>
+                </div>
+
+                <div style="border-bottom: 1px dashed black; margin: 12px 0;"></div>
+
+                <!-- Dynamic UPI QR Code printable section -->
+                <div id="invoice-qr-container"
+                    style="text-align: center; margin: 15px 0 8px 0; background: white; color: black;">
+                    <div
+                        style="font-size: 10px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 6px; color: black;">
+                        SCAN TO PAY (UPI)</div>
+                    <canvas id="upi-qr-canvas" style="display: block; margin: auto; background: white;"></canvas>
+                    <div style="font-size: 9px; font-weight: 600; color: #444; margin-top: 6px;" id="inv-upi-id-text">
+                        8319361505@upi</div>
+                </div>
+
+                <div style="border-bottom: 1px dashed black; margin: 12px 0;"></div>
+
+                <div style="text-align: center; margin-top: 15px; font-size: 11px;">
+                    <div>Thank You For Shopping!</div>
+                    <div>Please visit us again.</div>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" id="cancel-invoice-modal"
+                    data-lang="closeBtn">Close</button>
+                <button type="button" class="btn btn-primary" id="new-invoice-btn"
+                    onclick="app.closeInvoiceAndCreateNew()" data-lang="closeAndNewBtn">New Bill</button>
+                <button type="button" class="btn btn-accent" id="print-invoice-btn" onclick="app.triggerPrintReceipt()">
+                    <i data-lucide="printer"></i> Print Bill
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= BARCODE TAG MODAL ================= -->
+    <div class="modal-overlay" id="barcode-modal-overlay">
+        <div class="modal" style="max-width: 380px; padding: 24px;">
+            <div class="modal-header" style="margin-bottom: 16px;">
+                <h3 class="modal-title">Garment Price Tag</h3>
+                <button class="modal-close" id="close-barcode-modal">&times;</button>
+            </div>
+
+            <!-- PRINTABLE PRICE TAG -->
+            <div id="barcode-print-area"
+                style="background: white; color: black; padding: 16px; border: 2px solid black; border-radius: 8px; font-family: 'Outfit', sans-serif; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); width: 280px; margin: auto;">
+                <h2 id="tag-brand-name"
+                    style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; color: black;">
+                    SANYAM GARMENTS</h2>
+                <div style="font-size: 10px; color: #555; margin-bottom: 8px;">Premium Apparel Collection</div>
+
+                <div style="border-bottom: 1px dotted black; margin: 8px 0;"></div>
+
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px; color: black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                    id="tag-name">Premium Denim Jacket</div>
+
+                <div
+                    style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; padding: 0 10px; margin-bottom: 8px; color: black;">
+                    <span>Size: <strong id="tag-size">L</strong></span>
+                    <span>MRP: <strong id="tag-price">₹1,999</strong></span>
+                </div>
+
+                <div style="display: flex; justify-content: center; margin: 10px 0;">
+                    <!-- Barcode graphic rendered as SVG inside white background -->
+                    <svg id="barcode-svg" style="background: white;"></svg>
+                </div>
+
+                <div style="font-size: 8px; color: #777; margin-top: 4px;">Thank you for shopping with us!</div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" id="cancel-barcode-modal"
+                    data-lang="closeBtn">Close</button>
+                <button type="button" class="btn btn-accent" id="print-barcode-btn" onclick="app.triggerPrintBarcode()">
+                    <i data-lucide="printer"></i> Print Tag
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Button - sidebar mein add karo -->
+    <style>
+        @keyframes authSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .auth-method-tab:hover {
+            opacity: 0.85;
+        }
+    </style>
+
+    <!-- Main JavaScript Logic -->
+    <script src="lang.js"></script>
+    <script src="app.js"></script>
+    <!-- Auth System (load after app.js so initMainApp is available) -->
+    <script src="auth.js"></script>
+</body>
+
+</html>

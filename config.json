@@ -1,0 +1,14 @@
+{
+    "supabase": {
+        "supabaseUrl": "https://perqenzxqqokgdllziuo.supabase.co",
+        "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlcnFlbnp4cXFva2dkbGx6aXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3OTQ0MzUsImV4cCI6MjA5ODM3MDQzNX0.OrIRe9FLBkuARX7daGHUscn6p48SU-4B5JVLsFVXI3w"
+    },
+    "firebase": {
+        "apiKey": "",
+        "authDomain": "",
+        "projectId": "",
+        "storageBucket": "",
+        "messagingSenderId": "",
+        "appId": ""
+    }
+}
