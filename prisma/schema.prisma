@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String? @unique
+  phone    String? @unique
+  passHash String?
+}
+
+model Profile {
+  id           Int     @id
+  shop_name    String
+  owner_name   String
+  shop_address String?
+  shop_phone   String?
+  upi_id       String?
+  setup_done   Boolean
+}
+
+model Inventory {
+  id         Int    @id @default(autoincrement())
+  user_id    Int
+  name       String
+  category   String
+  size       String
+  buy_price  Float
+  sell_price Float
+  qty        Int
+  min_alert  Int
+}
+
+model Sale {
+  id             Int     @id @default(autoincrement())
+  user_id        Int
+  items          Json
+  item_id        Int?
+  item_name      String?
+  size           String?
+  qty            Int
+  cost           Float
+  revenue        Float
+  profit         Float
+  discount       Float
+  discount_pct   Float
+  customer_name  String?
+  customer_phone String?
+  timestamp      BigInt
+}
+
+model Supplier {
+  id       Int     @id @default(autoincrement())
+  user_id  Int
+  name     String
+  contact  String?
+  amount   Float
+  due_date String?
+  status   String
+}
+
+model Category {
+  id      Int    @id @default(autoincrement())
+  user_id Int
+  name    String
+}
