@@ -1,0 +1,97 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?  @unique
+  passHash  String?
+  createdAt DateTime @default(now())
+  
+  profile     Profile?
+  inventories Inventory[]
+  sales       Sale[]
+  suppliers   Supplier[]
+  categories  Category[]
+}
+
+model Profile {
+  id           String   @id
+  user         User     @relation(fields: [id], references: [id], onDelete: Cascade)
+  shop_name    String
+  owner_name   String
+  shop_address String?
+  shop_phone   String?
+  upi_id       String?
+  setup_done   Boolean  @default(true)
+  updated_at   DateTime @default(now()) @updatedAt
+}
+
+model Inventory {
+  id         String
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name       String
+  category   String
+  size       String
+  buy_price  Float    @default(0)
+  sell_price Float    @default(0)
+  qty        Int      @default(0)
+  min_alert  Int      @default(0)
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@id([id, user_id])
+}
+
+model Sale {
+  id             String
+  user_id        String
+  user           User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  items          Json     @default("[]")
+  item_id        String?
+  item_name      String?
+  size           String?
+  qty            Int      @default(0)
+  cost           Float    @default(0)
+  revenue        Float    @default(0)
+  profit         Float    @default(0)
+  discount       Float    @default(0)
+  discount_pct   Float    @default(0)
+  customer_name  String?
+  customer_phone String?
+  timestamp      BigInt
+  updated_at     DateTime @default(now()) @updatedAt
+
+  @@id([id, user_id])
+}
+
+model Supplier {
+  id         String
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name       String
+  contact    String?
+  amount     Float    @default(0)
+  due_date   String?
+  status     String   @default("pending")
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@id([id, user_id])
+}
+
+model Category {
+  id         Int      @default(autoincrement())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name       String
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@id([id, user_id])
+}
